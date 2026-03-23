@@ -1,20 +1,29 @@
-const express = require("express");
-const router = express.Router();
+const express = require('express');
 const {
+  getReviews,
+  getReview,
   createReview,
-  getReviewsByCoworking,
-  deleteReview
-} = require("../controllers/reviews");
+  updateReview,
+  deleteReview,
+  getReviewsByCoworking
+} = require('../controllers/reviews');
 
-const { protect, authorize } = require("../middleware/auth");
+const router = express.Router({ mergeParams: true });
+const { protect, authorize } = require('../middleware/auth');
 
-// user สร้างรีวิว
-router.post("/", protect, createReview);
+// 🔹 เส้นทางหลัก /api/v1/reviews
+router.route('/')
+  .get(getReviews) // ใครก็ดูรีวิวทั้งหมดได้
+  .post(protect, authorize('user', 'admin'), createReview); // ต้องล็อกอินถึงจะรีวิวได้
 
-// ดูรีวิว coworking
-router.get("/:coworkingId", getReviewsByCoworking);
+// 🔹 เส้นทางที่มีการระบุ ID /api/v1/reviews/:id
+router.route('/:id')
+  .get(getReview)
+  .put(protect, authorize('user', 'admin'), updateReview)
+  .delete(protect, authorize('user', 'admin'), deleteReview);
 
-// admin ลบรีวิว
-router.delete("/:id", protect, authorize("admin"), deleteReview);
+// 🔹 เส้นทางดูรีวิวตามสถานที่ /api/v1/reviews/coworking/:coworkingId
+router.route('/coworking/:coworkingId')
+  .get(getReviewsByCoworking);
 
 module.exports = router;

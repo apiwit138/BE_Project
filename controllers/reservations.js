@@ -6,27 +6,33 @@ const mongoose = require('mongoose');
 //@route    GET /api/v1/reservations
 //@route    GET /api/v1/coworkingspaces/:coworkingSpaceId/reservations
 //@access   Private
+//@desc     Get all reservations
+//@route    GET /api/v1/reservations
+//@access   Private
 exports.getReservations = async (req, res, next) => {
   let query;
 
-  // General users can see only their own reservations
-  if (req.user.role !== 'admin') {
-    query = Reservation.find({ user: req.user.id }).populate({
+  // สร้าง Object สำหรับการ Populate เพื่อลดความซ้ำซ้อน
+  const populateOption = [
+    {
       path: 'coworkingSpace',
       select: 'name address telephoneNumber openTime closeTime',
-    });
+    },
+    {
+      path: 'user',
+      select: 'name email', // 🔥 เพิ่มตรงนี้เพื่อให้ส่งชื่อผู้จองกลับไปด้วย
+    }
+  ];
+
+  // General users can see only their own reservations
+  if (req.user.role !== 'admin') {
+    query = Reservation.find({ user: req.user.id }).populate(populateOption);
   } else {
     // Admins can see all reservations, optionally filtered by coworkingSpaceId
     if (req.params.coworkingSpaceId) {
-      query = Reservation.find({ coworkingSpace: req.params.coworkingSpaceId }).populate({
-        path: 'coworkingSpace',
-        select: 'name address telephoneNumber openTime closeTime',
-      });
+      query = Reservation.find({ coworkingSpace: req.params.coworkingSpaceId }).populate(populateOption);
     } else {
-      query = Reservation.find().populate({
-        path: 'coworkingSpace',
-        select: 'name address telephoneNumber openTime closeTime',
-      });
+      query = Reservation.find().populate(populateOption);
     }
   }
 
@@ -47,15 +53,19 @@ exports.getReservations = async (req, res, next) => {
   }
 };
 
-//@desc     Get single reservation
-//@route    GET /api/v1/reservations/:id
-//@access   Private
+// อย่าลืมแก้ใน getReservation (Single) ด้วยเพื่อให้กดดูรายละเอียดแล้วเห็นชื่อ
 exports.getReservation = async (req, res, next) => {
   try {
-    const reservation = await Reservation.findById(req.params.id).populate({
-      path: 'coworkingSpace',
-      select: 'name address telephoneNumber openTime closeTime',
-    });
+    const reservation = await Reservation.findById(req.params.id).populate([
+      {
+        path: 'coworkingSpace',
+        select: 'name address telephoneNumber openTime closeTime',
+      },
+      {
+        path: 'user',
+        select: 'name email', // 🔥 เพิ่มตรงนี้ด้วย
+      }
+    ]);
 
     if (!reservation) {
       return res.status(404).json({
@@ -64,8 +74,7 @@ exports.getReservation = async (req, res, next) => {
       });
     }
 
-    // Users can only view their own reservation
-    if (reservation.user.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (reservation.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: `User ${req.user.id} is not authorized to view this reservation`,
