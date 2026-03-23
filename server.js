@@ -1,8 +1,11 @@
 const express = require('express');
 const dotenv = require('dotenv');
 
-// 1. ย้าย dotenv มาไว้บนสุดเพื่อให้โหลดค่ามาเตรียมไว้ก่อน
+// 1. ลองโหลดจากไฟล์ก่อน (สำหรับรันในเครื่องตัวเอง)
 dotenv.config({ path: './config/config.env' });
+
+// 2. โหลดซ้ำอีกรอบแบบไม่ระบุ Path (เพื่อให้มันไปดึงจาก Environment Variables ของ Vercel)
+dotenv.config();
 
 const connectDB = require('./config/db');
 const cookieParser = require('cookie-parser');
