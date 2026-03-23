@@ -75,7 +75,7 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
 // Routes
 const auth = require('./routes/auth');
-const coworkingSpaces = require('./routes/coworkingSpaces');
+const coworkingSpaces = require('./routes/coworkingspaces');
 const reservations = require('./routes/reservations');
 const reviewRoutes = require('./routes/reviews');
 
