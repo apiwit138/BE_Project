@@ -1,4 +1,17 @@
-#ignore all node_modules
-node_modules/*
-ignore config file
+# Dependency folders
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Config files (เฉพาะที่คุณระบุ)
 config/config.env
+
+# อื่นๆ ที่ควรกันไว้
+.DS_Store
+dist/
+build/
